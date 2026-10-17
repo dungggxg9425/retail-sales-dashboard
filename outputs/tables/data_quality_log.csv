@@ -1,0 +1,5 @@
+van_de,so_dong
+"Tên sản phẩm có ký tự ngoài ASCII – đọc bằng mã Windows-1252, lưu lại UTF-8",278
+Dòng trùng lặp (trùng mọi cột trừ row_id) – loại bỏ,1
+Mã bưu chính 4 chữ số (mất số 0 đầu) – bổ sung thành 5 chữ số,449
+product_id ứng với nhiều tên sản phẩm – tạo khóa thay thế product_key,32

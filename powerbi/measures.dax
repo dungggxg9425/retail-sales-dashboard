@@ -1,0 +1,67 @@
+// =====================================================================
+//  Measure DAX – dashboard hiệu quả kinh doanh bán lẻ (Superstore)
+//  Tạo trong bảng FactSales: Modeling > New measure, dán từng measure
+// =====================================================================
+
+Doanh thu =
+SUM ( FactSales[sales] )
+
+Loi nhuan =
+SUM ( FactSales[profit] )
+
+Bien loi nhuan =
+DIVIDE ( [Loi nhuan], [Doanh thu] )
+
+So don =
+DISTINCTCOUNT ( FactSales[order_id] )
+
+So luong ban =
+SUM ( FactSales[quantity] )
+
+Gia tri don TB =
+DIVIDE ( [Doanh thu], [So don] )
+
+// Chiết khấu bình quân có trọng số theo doanh thu
+Chiet khau TB =
+DIVIDE ( SUMX ( FactSales, FactSales[sales] * FactSales[discount] ), [Doanh thu] )
+
+// ---------- So sánh cùng kỳ (cần DimDate được Mark as date table) ----------
+Doanh thu cung ky =
+CALCULATE ( [Doanh thu], SAMEPERIODLASTYEAR ( DimDate[date] ) )
+
+Tang truong YoY =
+DIVIDE ( [Doanh thu] - [Doanh thu cung ky], [Doanh thu cung ky] )
+
+Loi nhuan cung ky =
+CALCULATE ( [Loi nhuan], SAMEPERIODLASTYEAR ( DimDate[date] ) )
+
+Tang truong LN YoY =
+DIVIDE ( [Loi nhuan] - [Loi nhuan cung ky], [Loi nhuan cung ky] )
+
+Doanh thu luy ke nam =
+TOTALYTD ( [Doanh thu], DimDate[date] )
+
+// ---------- Top-N sản phẩm ----------
+// Xếp hạng sản phẩm theo doanh thu trong ngữ cảnh lọc hiện tại
+Hang san pham =
+IF (
+    ISINSCOPE ( DimProduct[product_name] ),
+    RANKX ( ALLSELECTED ( DimProduct[product_name] ), [Doanh thu], , DESC, DENSE )
+)
+
+// Doanh thu chỉ hiện cho Top N (N lấy từ tham số What-if 'TopN', mặc định 10)
+Doanh thu Top N =
+VAR N = SELECTEDVALUE ( TopN[TopN Value], 10 )
+RETURN IF ( [Hang san pham] <= N, [Doanh thu] )
+
+// ---------- Hỗ trợ trình bày ----------
+// Số dòng bán lỗ và tỷ lệ
+So dong lo =
+CALCULATE ( COUNTROWS ( FactSales ), FactSales[profit] < 0 )
+
+Ty le dong lo =
+DIVIDE ( [So dong lo], COUNTROWS ( FactSales ) )
+
+// Màu có điều kiện cho biểu đồ lợi nhuận (Format > Data colors > fx > Field value)
+Mau loi nhuan =
+IF ( [Loi nhuan] < 0, "#EB6834", "#2A78D6" )
